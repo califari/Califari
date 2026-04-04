@@ -188,8 +188,8 @@ img {
 }
 
 .logo-img {
-    height: 190px;
-    /* Dobro aproximado (antes era 50px) */
+    height: 100px;
+    /* Ajustado para caber no header */
     width: auto;
     object-fit: contain;
     display: block;
@@ -532,8 +532,8 @@ img {
 }
 
 .footer-logo {
-    height: 190px;
-    /* Dobro (antes era 48px) */
+    height: 80px;
+    /* Ajustado para caber no footer */
     width: auto;
     object-fit: contain;
     display: block;
