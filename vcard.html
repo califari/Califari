@@ -5,22 +5,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eng. Gilmar Faria - Cartão Digital</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary-bg: #3c4d57;
-            --secondary-bg: #f8f9fa;
-            --text-color: #333;
-            --text-light: #666;
+            --primary-gradient: linear-gradient(135deg, #3c4d57 0%, #2c3e50 100%);
+            --secondary-bg: #f0f2f5;
+            --text-color: #1a1a1a;
+            --text-light: #64748b;
             --white: #ffffff;
-            --accent: #2c3e50;
+            --accent: #3b82f6;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
 
         body {
@@ -29,103 +31,142 @@
             line-height: 1.6;
             display: flex;
             justify-content: center;
+            align-items: center;
             min-height: 100vh;
+            padding: 20px;
         }
 
         .container {
             width: 100%;
-            max-width: 480px;
+            max-width: 420px;
             background-color: var(--white);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
             overflow: hidden;
+            transition: transform 0.3s ease;
         }
 
         header {
-            background-color: var(--primary-bg);
-            padding: 40px 20px;
+            background: var(--primary-gradient);
+            padding: 50px 20px;
             text-align: center;
             color: var(--white);
+            position: relative;
         }
 
-        .profile-img {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            border: 4px solid rgba(255, 255, 255, 0.2);
-            object-fit: cover;
+        .profile-img-container {
+            position: relative;
+            display: inline-block;
             margin-bottom: 20px;
         }
 
+        .profile-img {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            object-fit: cover;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .profile-img:hover {
+            transform: scale(1.05);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
         h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 5px;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.025em;
         }
 
         .subtitle {
-            font-size: 0.95rem;
+            font-size: 1rem;
             opacity: 0.9;
-            font-weight: 300;
+            font-weight: 400;
+            color: #e2e8f0;
         }
 
         .quick-actions {
             display: flex;
-            border-bottom: 1px solid #eee;
+            padding: 10px;
+            background: #fff;
+            gap: 10px;
         }
 
         .action-btn {
             flex: 1;
-            padding: 15px;
+            padding: 16px;
             text-align: center;
             text-decoration: none;
             color: var(--primary-bg);
             font-weight: 600;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
-            transition: background 0.3s;
-        }
-
-        .action-btn:first-child {
-            border-right: 1px solid #eee;
+            gap: 8px;
+            background: #f8fafc;
+            border-radius: 16px;
+            transition: all 0.2s ease;
         }
 
         .action-btn:hover {
-            background-color: #f0f2f5;
+            background-color: #e2e8f0;
+            transform: translateY(-2px);
         }
 
         .action-btn i {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
+            color: var(--accent);
         }
 
         main {
-            padding: 30px 25px;
+            padding: 24px;
         }
 
         .bio {
             font-size: 0.95rem;
-            color: var(--text-color);
+            color: var(--text-light);
             margin-bottom: 30px;
-            text-align: justify;
+            text-align: center;
+            padding: 0 10px;
         }
 
         .contact-list {
             list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
 
         .contact-item {
             display: flex;
             align-items: center;
-            padding: 15px 0;
-            border-top: 1px solid #eee;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 12px;
+            transition: background 0.3s ease;
+        }
+
+        .contact-item:hover {
+            background: #f1f5f9;
         }
 
         .contact-icon {
-            width: 40px;
-            color: var(--text-light);
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            border-radius: 12px;
+            color: var(--accent);
             font-size: 1.2rem;
+            margin-right: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
         .contact-info {
@@ -134,55 +175,71 @@
 
         .contact-value {
             display: block;
-            font-weight: 500;
+            font-weight: 600;
             color: var(--text-color);
             text-decoration: none;
+            font-size: 0.95rem;
         }
 
         .contact-label {
             display: block;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .social-links {
             display: flex;
             justify-content: center;
-            gap: 20px;
-            margin: 30px 0;
+            gap: 24px;
+            margin: 32px 0 16px;
         }
 
         .social-icon {
-            font-size: 1.5rem;
-            color: var(--text-light);
-            transition: color 0.3s;
+            transition: transform 0.3s ease;
         }
 
         .social-icon:hover {
-            color: var(--primary-bg);
+            transform: scale(1.15);
         }
 
         .download-btn {
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
             width: 100%;
             background-color: var(--primary-bg);
             color: var(--white);
             text-align: center;
-            padding: 15px;
-            border-radius: 5px;
+            padding: 18px;
+            border-radius: 16px;
             text-decoration: none;
-            font-weight: 600;
-            margin-top: 20px;
-            transition: opacity 0.3s;
+            font-weight: 700;
+            margin-top: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
         .download-btn:hover {
-            opacity: 0.9;
+            opacity: 0.95;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .whatsapp-btn {
+            background-color: #22c55e !important;
         }
 
         @media (max-width: 480px) {
+            body {
+                padding: 0;
+            }
             .container {
-                box-shadow: none;
+                border-radius: 0;
+                min-height: 100vh;
+                max-width: 100%;
             }
         }
     </style>
@@ -191,7 +248,9 @@
 <body>
     <div class="container">
         <header>
-            <img src="assets/gilmar_faria_profile.jpg" alt="Eng. Gilmar Faria" class="profile-img">
+            <div class="profile-img-container">
+                <img src="assets/gilmar_profile_new.jpg" alt="Eng. Gilmar Faria" class="profile-img">
+            </div>
             <h1>Eng. Gilmar Faria</h1>
             <p class="subtitle">Engenheiro de Segurança do Trabalho</p>
         </header>
@@ -199,11 +258,11 @@
         <div class="quick-actions">
             <a href="tel:021986296099" class="action-btn">
                 <i class="fas fa-phone-alt"></i>
-                CALL
+                Ligar
             </a>
             <a href="mailto:eng.gilmarfaria@gmail.com" class="action-btn">
                 <i class="fas fa-paper-plane"></i>
-                EMAIL
+                E-mail
             </a>
         </div>
 
@@ -242,20 +301,21 @@
             </div>
 
             <div class="social-links">
-                <a href="https://www.instagram.com/califari.sst" target="_blank" class="social-icon"
-                    style="display: flex; align-items: center;">
+                <a href="https://www.instagram.com/califari.sst" target="_blank" class="social-icon">
                     <img src="assets/instagram-logo.jpg" alt="Instagram"
-                        style="width: 32px; height: 32px; border-radius: 8px;">
+                        style="width: 36px; height: 36px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                 </a>
             </div>
 
-            <a href="https://wa.me/5521986296099" target="_blank" class="download-btn"
-                style="background-color: #25D366; color: white; display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <a href="https://wa.me/5521986296099" target="_blank" class="download-btn whatsapp-btn">
                 <img src="assets/whatsapp-logo.jpg" alt="WhatsApp"
                     style="width: 24px; height: 24px; border-radius: 4px;">
-                WHATSAPP
+                WhatsApp
             </a>
-            <a href="assets/gilmar_faria.vcf" class="download-btn">DOWNLOAD VCARD</a>
+            <a href="assets/gilmar_faria.vcf" class="download-btn">
+                <i class="fas fa-address-card"></i>
+                Salvar Contato
+            </a>
         </main>
     </div>
 </body>
