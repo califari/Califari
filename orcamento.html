@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Califari | Gerador de Orçamentos</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- CSS Base do Site -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+
+    <style>
+        /* Estilos específicos para a página de orçamento */
+        body { background-color: #f8f9fa; }
+        
+        /* Tela de Senha */
+        #login-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .login-box {
+            background: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        /* Layout do Orçamento */
+        #app-content { display: none; padding-top: 100px; padding-bottom: 100px; }
+        .orcamento-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+        @media (max-width: 900px) {
+            .orcamento-grid { grid-template-columns: 1fr; }
+        }
+        
+        .panel {
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .panel h2 { margin-bottom: 20px; font-size: 1.5rem; color: #1a1a1a; display: flex; align-items: center; gap: 10px; }
+        
+        /* Formulário Cliente */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+        
+        /* Lista de Serviços */
+        .service-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .service-item:hover { border-color: #004b87; background-color: #f0f7ff; }
+        .service-item.selected { border-color: #004b87; background-color: #e6f2ff; }
+        .service-info { display: flex; align-items: center; gap: 15px; }
+        .service-price { font-weight: 600; color: #004b87; }
+        
+        /* Resumo Lateral */
+        .summary-panel { position: sticky; top: 100px; }
+        .summary-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; padding-bottom: 10px; border-bottom: 1px dashed #eee; }
+        .summary-total { display: flex; justify-content: space-between; font-size: 1.5rem; font-weight: 700; margin-top: 20px; color: #004b87; }
+        
+        /* Tela de Resumo Final (Impressão) */
+        #resumo-final { display: none; background: #fff; padding: 40px; border-radius: 8px; max-width: 800px; margin: 100px auto; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .resumo-header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #004b87; padding-bottom: 20px; }
+        .resumo-cliente { margin-bottom: 30px; background: #f8f9fa; padding: 20px; border-radius: 8px; }
+        .resumo-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        .resumo-table th, .resumo-table td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        .resumo-table th { background-color: #004b87; color: white; }
+        .resumo-actions { display: flex; gap: 15px; justify-content: center; margin-top: 40px; }
+        
+        @media print {
+            body { background: #fff; }
+            header, footer, .whatsapp-float, .resumo-actions { display: none !important; }
+            #resumo-final { box-shadow: none; margin: 0; padding: 0; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TELA DE LOGIN / SENHA -->
+    <div id="login-screen">
+        <div class="login-box">
+            <img src="assets/logo.png" alt="Califari" style="max-height: 50px; margin-bottom: 20px;">
+            <h3>Área Restrita</h3>
+            <p style="margin-bottom: 20px; font-size: 0.9rem;">Insira a senha para acessar o gerador de orçamentos.</p>
+            <div class="input-group">
+                <input type="password" id="senha" placeholder="Senha de acesso" style="text-align: center;">
+            </div>
+            <button onclick="verificarSenha()" class="btn btn-accent btn-full" style="margin-top: 10px;">Acessar</button>
+            <p id="login-erro" style="color: red; margin-top: 10px; display: none;">Senha incorreta.</p>
+        </div>
+    </div>
+
+    <!-- CABEÇALHO DO SITE (Reduzido) -->
+    <header class="header" id="header" style="display: none;">
+        <div class="container header-container">
+            <div class="logo">
+                <img src="assets/logo.png" alt="Califari" class="logo-img">
+            </div>
+            <span style="font-weight: 600; color: #004b87;">Gerador de Orçamentos (Uso Interno)</span>
+        </div>
+    </header>
+
+    <!-- CONTEÚDO DO APLICATIVO -->
+    <div id="app-content" class="container">
+        
+        <!-- TELA 1: SELEÇÃO E CARRINHO -->
+        <div id="tela-selecao" class="orcamento-grid">
+            
+            <div class="left-col">
+                <!-- Dados do Cliente -->
+                <div class="panel">
+                    <h2><i data-lucide="user"></i> Dados do Cliente</h2>
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label>Nome do Cliente / Contato</label>
+                            <input type="text" id="cliente-nome" placeholder="Ex: João Silva">
+                        </div>
+                        <div class="input-group">
+                            <label>Empresa</label>
+                            <input type="text" id="cliente-empresa" placeholder="Ex: Indústria XYZ">
+                        </div>
+                        <div class="input-group">
+                            <label>E-mail</label>
+                            <input type="email" id="cliente-email" placeholder="email@empresa.com">
+                        </div>
+                        <div class="input-group">
+                            <label>WhatsApp</label>
+                            <input type="text" id="cliente-whatsapp" placeholder="(00) 00000-0000">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuração da Tabela -->
+                <div class="panel">
+                    <h2><i data-lucide="settings"></i> Tabela de Preços</h2>
+                    <p style="margin-bottom: 15px; font-size: 0.9rem;">Selecione qual tabela será aplicada a este orçamento:</p>
+                    <div style="display: flex; gap: 20px;">
+                        <label><input type="radio" name="tabela" value="1" checked onchange="renderizarServicos()"> Tabela 1 (Padrão)</label>
+                        <label><input type="radio" name="tabela" value="2" onchange="renderizarServicos()"> Tabela 2 (Intermediária)</label>
+                        <label><input type="radio" name="tabela" value="3" onchange="renderizarServicos()"> Tabela 3 (Premium)</label>
+                    </div>
+                </div>
+
+                <!-- Lista de Serviços -->
+                <div class="panel">
+                    <h2><i data-lucide="list-checks"></i> Selecione os Serviços</h2>
+                    <div id="lista-servicos">
+                        <!-- Serviços injetados via JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carrinho / Resumo Lateral -->
+            <div class="right-col">
+                <div class="panel summary-panel">
+                    <h2><i data-lucide="shopping-cart"></i> Resumo</h2>
+                    <div id="carrinho-itens">
+                        <p style="color: #666; font-size: 0.9rem;">Nenhum serviço selecionado ainda.</p>
+                    </div>
+                    <div class="summary-total">
+                        <span>Total:</span>
+                        <span id="carrinho-total">R$ 0,00</span>
+                    </div>
+                    <button onclick="gerarResumoFinal()" class="btn btn-accent btn-full" style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                        <i data-lucide="check-circle"></i> Finalizar Orçamento
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- TELA 2: RESUMO FINAL PRONTO PARA ENVIO/IMPRESSÃO -->
+        <div id="resumo-final">
+            <div class="resumo-header">
+                <img src="assets/logo.png" alt="Califari" style="max-height: 60px; margin-bottom: 20px;">
+                <h2>Proposta Técnica e Comercial</h2>
+                <p>Segurança do Trabalho e Conformidade Normativa</p>
+            </div>
+
+            <div class="resumo-cliente" id="resumo-dados-cliente">
+                <!-- Preenchido via JS -->
+            </div>
+
+            <table class="resumo-table">
+                <thead>
+                    <tr>
+                        <th>Descrição do Serviço</th>
+                        <th style="text-align: right;">Valor (R$)</th>
+                    </tr>
+                </thead>
+                <tbody id="resumo-tabela-corpo">
+                    <!-- Preenchido via JS -->
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th style="background-color: transparent; color: #1a1a1a; text-align: right; font-size: 1.2rem;">Investimento Total:</th>
+                        <th id="resumo-tabela-total" style="background-color: transparent; color: #004b87; text-align: right; font-size: 1.5rem;">R$ 0,00</th>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div style="margin-top: 30px; font-size: 0.9rem; color: #666;">
+                <p><strong>Condições Gerais:</strong></p>
+                <p>1. Validade desta proposta: 15 dias.</p>
+                <p>2. Condições de pagamento a combinar.</p>
+                <p>3. A execução dos serviços se dará mediante aprovação formal desta proposta.</p>
+            </div>
+
+            <div class="resumo-actions">
+                <button onclick="voltarEdicao()" class="btn" style="background: #e0e0e0; color: #333;"><i data-lucide="arrow-left"></i> Voltar e Editar</button>
+                <button onclick="window.print()" class="btn" style="background: #333; color: white;"><i data-lucide="printer"></i> Salvar PDF / Imprimir</button>
+                <button onclick="enviarWhatsApp()" class="btn" style="background: #25D366; color: white;"><i data-lucide="message-circle"></i> Enviar WhatsApp</button>
+                <button onclick="enviarEmail()" class="btn" style="background: #004b87; color: white;"><i data-lucide="mail"></i> Enviar E-mail</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Inicializa ícones Lucide
+        lucide.createIcons();
+
+        // --------------------------------------------------------
+        // 1. DADOS DOS SERVIÇOS (Você pode editar aqui depois!)
+        // --------------------------------------------------------
+        // Formato: { id: 1, categoria: "Nome da Categoria", nome: "Nome do Serviço", preco1: Valor 1, preco2: Valor 2, preco3: Valor 3 }
+                const servicosBase = [
+            { id: 1, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "PGR  Programa de Gerenciamento de Riscos", preco1: 450, preco2: 900, preco3: 1800 },
+            { id: 2, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "GRO  Gerenciamento de Riscos Ocupacionais", preco1: 400, preco2: 800, preco3: 1600 },
+            { id: 3, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "LTCAT  Laudo Técnico das Condições Ambientais do Trabalho", preco1: 700, preco2: 1500, preco3: 3500 },
+            { id: 4, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "PCMSO", preco1: 350, preco2: 700, preco3: 1400 },
+            { id: 5, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "AET  Análise Ergonômica do Trabalho", preco1: 1200, preco2: 2500, preco3: 6000 },
+            { id: 6, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "Laudo de Insalubridade", preco1: 900, preco2: 1800, preco3: 4500 },
+            { id: 7, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "Laudo de Periculosidade", preco1: 900, preco2: 1800, preco3: 4500 },
+            { id: 8, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "Laudo Ergonômico", preco1: 1000, preco2: 2200, preco3: 5000 },
+            { id: 9, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "Inventário de Riscos", preco1: 500, preco2: 1200, preco3: 2800 },
+            { id: 10, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "Plano de Ação SST", preco1: 600, preco2: 1400, preco3: 3500 },
+            { id: 11, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "Ordem de Serviço de Segurança", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 12, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "APR  Análise Preliminar de Risco", preco1: 150, preco2: 350, preco3: 800 },
+            { id: 13, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "PT  Permissão de Trabalho", preco1: 120, preco2: 300, preco3: 700 },
+            { id: 14, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "Mapa de Risco", preco1: 250, preco2: 500, preco3: 1200 },
+            { id: 15, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "PAE  Plano de Atendimento a Emergência", preco1: 600, preco2: 1400, preco3: 3500 },
+            { id: 16, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "PCA  Programa de Conservação Auditiva", preco1: 700, preco2: 1500, preco3: 3500 },
+            { id: 17, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "PPR  Programa de Proteção Respiratória", preco1: 700, preco2: 1500, preco3: 3500 },
+            { id: 18, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "Plano de Resposta a Emergência", preco1: 600, preco2: 1400, preco3: 3500 },
+            { id: 19, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "Plano de abandono de área", preco1: 600, preco2: 1400, preco3: 3500 },
+            { id: 20, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "Plano de resgate", preco1: 600, preco2: 1400, preco3: 3500 },
+            { id: 21, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "Plano de trabalho em altura", preco1: 600, preco2: 1400, preco3: 3500 },
+            { id: 22, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "Plano de içamento de cargas", preco1: 600, preco2: 1400, preco3: 3500 },
+            { id: 23, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "Plano de gerenciamento de produtos químicos", preco1: 600, preco2: 1400, preco3: 3500 },
+            { id: 24, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "Inventário de máquinas", preco1: 500, preco2: 1200, preco3: 2800 },
+            { id: 25, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "Prontuário de instalações elétricas", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 26, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "Relatórios técnicos de inspeção", preco1: 350, preco2: 900, preco3: 2500 },
+            { id: 27, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "Procedimentos operacionais padronizados (POP)", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 28, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "Manual de segurança operacional", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 29, categoria: "1. DOCUMENTAÇÕES OBRIGATÓRIAS DE SST", nome: "Plano de manutenção preventiva", preco1: 600, preco2: 1400, preco3: 3500 },
+            { id: 30, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "NR-01", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 31, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "NR-05  CIPA", preco1: 600, preco2: 1200, preco3: 2800 },
+            { id: 32, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "NR-06  EPI", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 33, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "NR-10  Segurança em eletricidade", preco1: 900, preco2: 1800, preco3: 4500 },
+            { id: 34, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "NR-11  Movimentação de cargas", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 35, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "NR-12  Máquinas e equipamentos", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 36, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "NR-13  Caldeiras e vasos de pressão", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 37, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "NR-18  Construção civil", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 38, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "NR-20  Inflamáveis e combustíveis", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 39, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "NR-23  Combate a incêndio", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 40, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "NR-33  Espaço confinado", preco1: 1200, preco2: 2500, preco3: 6000 },
+            { id: 41, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "NR-35  Trabalho em altura", preco1: 700, preco2: 1500, preco3: 3500 },
+            { id: 42, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "Brigada de incêndio", preco1: 900, preco2: 2000, preco3: 5000 },
+            { id: 43, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "Primeiros socorros", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 44, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "Direção defensiva", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 45, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "Operador de empilhadeira", preco1: 1200, preco2: 2500, preco3: 6000 },
+            { id: 46, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "Operador de PTA", preco1: 120, preco2: 300, preco3: 700 },
+            { id: 47, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "Operador de ponte rolante", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 48, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "Operador de guindaste", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 49, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "Operador de munck", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 50, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "Operador de máquinas industriais", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 51, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "Integração de segurança", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 52, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "DDS  Diálogo Diário de Segurança", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 53, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "SIPAT", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 54, categoria: "2. TREINAMENTOS DE NORMAS REGULAMENTADORAS", nome: "Treinamentos personalizados", preco1: 500, preco2: 1200, preco3: 3000 },
+            { id: 55, categoria: "3. GESTÃO DE SST TERCEIRIZADA", nome: "Gestão mensal de SST", preco1: 600, preco2: 1800, preco3: 5000 },
+            { id: 56, categoria: "3. GESTÃO DE SST TERCEIRIZADA", nome: "Consultoria recorrente", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 57, categoria: "3. GESTÃO DE SST TERCEIRIZADA", nome: "Responsável técnico terceirizado", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 58, categoria: "3. GESTÃO DE SST TERCEIRIZADA", nome: "Visitas técnicas periódicas", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 59, categoria: "3. GESTÃO DE SST TERCEIRIZADA", nome: "Acompanhamento de auditorias", preco1: 1500, preco2: 3500, preco3: 12000 },
+            { id: 60, categoria: "3. GESTÃO DE SST TERCEIRIZADA", nome: "Gestão documental", preco1: 600, preco2: 1800, preco3: 5000 },
+            { id: 61, categoria: "3. GESTÃO DE SST TERCEIRIZADA", nome: "Gestão de vencimentos", preco1: 600, preco2: 1800, preco3: 5000 },
+            { id: 62, categoria: "3. GESTÃO DE SST TERCEIRIZADA", nome: "Gestão de EPIs", preco1: 600, preco2: 1800, preco3: 5000 },
+            { id: 63, categoria: "3. GESTÃO DE SST TERCEIRIZADA", nome: "Gestão de treinamentos", preco1: 500, preco2: 1200, preco3: 3000 },
+            { id: 64, categoria: "3. GESTÃO DE SST TERCEIRIZADA", nome: "Gestão de exames ocupacionais", preco1: 600, preco2: 1800, preco3: 5000 },
+            { id: 65, categoria: "3. GESTÃO DE SST TERCEIRIZADA", nome: "Gestão de terceiros", preco1: 600, preco2: 1800, preco3: 5000 },
+            { id: 66, categoria: "3. GESTÃO DE SST TERCEIRIZADA", nome: "Gestão de indicadores SST", preco1: 600, preco2: 1800, preco3: 5000 },
+            { id: 67, categoria: "3. GESTÃO DE SST TERCEIRIZADA", nome: "Implantação de cultura de segurança", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 68, categoria: "3. GESTÃO DE SST TERCEIRIZADA", nome: "Reuniões de segurança", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 69, categoria: "3. GESTÃO DE SST TERCEIRIZADA", nome: "Comitês internos", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 70, categoria: "3. GESTÃO DE SST TERCEIRIZADA", nome: "Investigação de acidentes", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 71, categoria: "3. GESTÃO DE SST TERCEIRIZADA", nome: "Gestão de não conformidades", preco1: 600, preco2: 1800, preco3: 5000 },
+            { id: 72, categoria: "4. eSOCIAL", nome: "Envio S-2210", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 73, categoria: "4. eSOCIAL", nome: "Envio S-2220", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 74, categoria: "4. eSOCIAL", nome: "Envio S-2240", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 75, categoria: "4. eSOCIAL", nome: "Qualificação cadastral", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 76, categoria: "4. eSOCIAL", nome: "Correções de inconsistências", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 77, categoria: "4. eSOCIAL", nome: "Auditoria de eventos", preco1: 1500, preco2: 3500, preco3: 12000 },
+            { id: 78, categoria: "4. eSOCIAL", nome: "Integração com sistemas", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 79, categoria: "4. eSOCIAL", nome: "Revisão de cadastros", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 80, categoria: "4. eSOCIAL", nome: "Diagnóstico eSocial SST", preco1: 250, preco2: 600, preco3: 1500 },
+            { id: 81, categoria: "4. eSOCIAL", nome: "Implantação completa do eSocial", preco1: 250, preco2: 600, preco3: 1500 },
+            { id: 82, categoria: "5. SEGURANÇA CONTRA INCÊNDIO / PPCI", nome: "PPCI", preco1: 1800, preco2: 4500, preco3: 15000 },
+            { id: 83, categoria: "5. SEGURANÇA CONTRA INCÊNDIO / PPCI", nome: "PSCIP", preco1: 1800, preco2: 4500, preco3: 15000 },
+            { id: 84, categoria: "5. SEGURANÇA CONTRA INCÊNDIO / PPCI", nome: "Projetos de incêndio", preco1: 2500, preco2: 7000, preco3: 25000 },
+            { id: 85, categoria: "5. SEGURANÇA CONTRA INCÊNDIO / PPCI", nome: "Regularização junto ao Corpo de Bombeiros", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 86, categoria: "5. SEGURANÇA CONTRA INCÊNDIO / PPCI", nome: "ART/TRT", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 87, categoria: "5. SEGURANÇA CONTRA INCÊNDIO / PPCI", nome: "Dimensionamento de extintores", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 88, categoria: "5. SEGURANÇA CONTRA INCÊNDIO / PPCI", nome: "Projeto de hidrantes", preco1: 2500, preco2: 7000, preco3: 25000 },
+            { id: 89, categoria: "5. SEGURANÇA CONTRA INCÊNDIO / PPCI", nome: "Projeto de iluminação de emergência", preco1: 2500, preco2: 7000, preco3: 25000 },
+            { id: 90, categoria: "5. SEGURANÇA CONTRA INCÊNDIO / PPCI", nome: "Projeto de sinalização", preco1: 2500, preco2: 7000, preco3: 25000 },
+            { id: 91, categoria: "5. SEGURANÇA CONTRA INCÊNDIO / PPCI", nome: "Projeto de alarme de incêndio", preco1: 2500, preco2: 7000, preco3: 25000 },
+            { id: 92, categoria: "5. SEGURANÇA CONTRA INCÊNDIO / PPCI", nome: "Projeto de SPDA", preco1: 2500, preco2: 7000, preco3: 25000 },
+            { id: 93, categoria: "5. SEGURANÇA CONTRA INCÊNDIO / PPCI", nome: "Projeto de detecção", preco1: 2500, preco2: 7000, preco3: 25000 },
+            { id: 94, categoria: "5. SEGURANÇA CONTRA INCÊNDIO / PPCI", nome: "Projeto de gás GLP", preco1: 2500, preco2: 7000, preco3: 25000 },
+            { id: 95, categoria: "5. SEGURANÇA CONTRA INCÊNDIO / PPCI", nome: "Rotas de fuga", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 96, categoria: "5. SEGURANÇA CONTRA INCÊNDIO / PPCI", nome: "Compartimentação", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 97, categoria: "5. SEGURANÇA CONTRA INCÊNDIO / PPCI", nome: "Controle de materiais de acabamento", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 98, categoria: "5. SEGURANÇA CONTRA INCÊNDIO / PPCI", nome: "Inspeções de combate a incêndio", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 99, categoria: "5. SEGURANÇA CONTRA INCÊNDIO / PPCI", nome: "Simulados de abandono", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 100, categoria: "6. INSPEÇÕES E AVALIAÇÕES TÉCNICAS", nome: "Avaliação de ruído", preco1: 600, preco2: 1400, preco3: 4000 },
+            { id: 101, categoria: "6. INSPEÇÕES E AVALIAÇÕES TÉCNICAS", nome: "Avaliação de calor", preco1: 600, preco2: 1400, preco3: 4000 },
+            { id: 102, categoria: "6. INSPEÇÕES E AVALIAÇÕES TÉCNICAS", nome: "Avaliação de vibração", preco1: 600, preco2: 1400, preco3: 4000 },
+            { id: 103, categoria: "6. INSPEÇÕES E AVALIAÇÕES TÉCNICAS", nome: "Avaliação de agentes químicos", preco1: 600, preco2: 1400, preco3: 4000 },
+            { id: 104, categoria: "6. INSPEÇÕES E AVALIAÇÕES TÉCNICAS", nome: "Avaliação de poeiras", preco1: 600, preco2: 1400, preco3: 4000 },
+            { id: 105, categoria: "6. INSPEÇÕES E AVALIAÇÕES TÉCNICAS", nome: "Avaliação de gases", preco1: 600, preco2: 1400, preco3: 4000 },
+            { id: 106, categoria: "6. INSPEÇÕES E AVALIAÇÕES TÉCNICAS", nome: "Avaliação de iluminação", preco1: 600, preco2: 1400, preco3: 4000 },
+            { id: 107, categoria: "6. INSPEÇÕES E AVALIAÇÕES TÉCNICAS", nome: "Avaliação de ventilação", preco1: 600, preco2: 1400, preco3: 4000 },
+            { id: 108, categoria: "6. INSPEÇÕES E AVALIAÇÕES TÉCNICAS", nome: "Avaliação de fumos metálicos", preco1: 600, preco2: 1400, preco3: 4000 },
+            { id: 109, categoria: "Inspeções", nome: "Inspeção de máquinas", preco1: 350, preco2: 900, preco3: 2500 },
+            { id: 110, categoria: "Inspeções", nome: "Inspeção elétrica", preco1: 350, preco2: 900, preco3: 2500 },
+            { id: 111, categoria: "Inspeções", nome: "Inspeção de EPIs", preco1: 350, preco2: 900, preco3: 2500 },
+            { id: 112, categoria: "Inspeções", nome: "Inspeção de extintores", preco1: 350, preco2: 900, preco3: 2500 },
+            { id: 113, categoria: "Inspeções", nome: "Inspeção de hidrantes", preco1: 350, preco2: 900, preco3: 2500 },
+            { id: 114, categoria: "Inspeções", nome: "Inspeção predial", preco1: 350, preco2: 900, preco3: 2500 },
+            { id: 115, categoria: "Inspeções", nome: "Inspeção de trabalho em altura", preco1: 350, preco2: 900, preco3: 2500 },
+            { id: 116, categoria: "Inspeções", nome: "Inspeção de andaimes", preco1: 350, preco2: 900, preco3: 2500 },
+            { id: 117, categoria: "Inspeções", nome: "Inspeção de linha de vida", preco1: 350, preco2: 900, preco3: 2500 },
+            { id: 118, categoria: "Inspeções", nome: "Inspeção de empilhadeiras", preco1: 1200, preco2: 2500, preco3: 6000 },
+            { id: 119, categoria: "Inspeções", nome: "Inspeção de vasos de pressão", preco1: 350, preco2: 900, preco3: 2500 },
+            { id: 120, categoria: "Inspeções", nome: "Inspeção de caldeiras", preco1: 350, preco2: 900, preco3: 2500 },
+            { id: 121, categoria: "7. ENGENHARIA E PROJETOS", nome: "Adequação NR-12", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 122, categoria: "7. ENGENHARIA E PROJETOS", nome: "Adequação de máquinas", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 123, categoria: "7. ENGENHARIA E PROJETOS", nome: "Projetos de exaustão", preco1: 2500, preco2: 7000, preco3: 25000 },
+            { id: 124, categoria: "7. ENGENHARIA E PROJETOS", nome: "Projetos de ventilação", preco1: 2500, preco2: 7000, preco3: 25000 },
+            { id: 125, categoria: "7. ENGENHARIA E PROJETOS", nome: "Projetos industriais", preco1: 2500, preco2: 7000, preco3: 25000 },
+            { id: 126, categoria: "7. ENGENHARIA E PROJETOS", nome: "Layout industrial", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 127, categoria: "7. ENGENHARIA E PROJETOS", nome: "Sinalização industrial", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 128, categoria: "7. ENGENHARIA E PROJETOS", nome: "Proteções coletivas", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 129, categoria: "7. ENGENHARIA E PROJETOS", nome: "SPDA", preco1: 2500, preco2: 6000, preco3: 18000 },
+            { id: 130, categoria: "7. ENGENHARIA E PROJETOS", nome: "Sistemas de aterramento", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 131, categoria: "7. ENGENHARIA E PROJETOS", nome: "Proteção contra quedas", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 132, categoria: "7. ENGENHARIA E PROJETOS", nome: "Linhas de vida", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 133, categoria: "7. ENGENHARIA E PROJETOS", nome: "Guarda-corpos", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 134, categoria: "7. ENGENHARIA E PROJETOS", nome: "Engenharia de produção", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 135, categoria: "7. ENGENHARIA E PROJETOS", nome: "Otimização de processos", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 136, categoria: "8. AUDITORIAS E COMPLIANCE", nome: "Auditoria trabalhista", preco1: 1500, preco2: 3500, preco3: 12000 },
+            { id: 137, categoria: "8. AUDITORIAS E COMPLIANCE", nome: "Auditoria de SST", preco1: 1500, preco2: 3500, preco3: 12000 },
+            { id: 138, categoria: "8. AUDITORIAS E COMPLIANCE", nome: "Auditoria NR", preco1: 1500, preco2: 3500, preco3: 12000 },
+            { id: 139, categoria: "8. AUDITORIAS E COMPLIANCE", nome: "Auditoria interna", preco1: 1500, preco2: 3500, preco3: 12000 },
+            { id: 140, categoria: "8. AUDITORIAS E COMPLIANCE", nome: "Auditoria comportamental", preco1: 1500, preco2: 3500, preco3: 12000 },
+            { id: 141, categoria: "8. AUDITORIAS E COMPLIANCE", nome: "Due diligence SST", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 142, categoria: "8. AUDITORIAS E COMPLIANCE", nome: "Auditoria para certificações", preco1: 1500, preco2: 3500, preco3: 12000 },
+            { id: 143, categoria: "8. AUDITORIAS E COMPLIANCE", nome: "ISO 45001", preco1: 4000, preco2: 10000, preco3: 30000 },
+            { id: 144, categoria: "8. AUDITORIAS E COMPLIANCE", nome: "Diagnóstico legal", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 145, categoria: "8. AUDITORIAS E COMPLIANCE", nome: "Levantamento de não conformidades", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 146, categoria: "8. AUDITORIAS E COMPLIANCE", nome: "Plano de adequação legal", preco1: 600, preco2: 1400, preco3: 3500 },
+            { id: 147, categoria: "9. ÁREA JURÍDICA / PERICIAL", nome: "Assistência técnica em perícias", preco1: 2500, preco2: 7000, preco3: 20000 },
+            { id: 148, categoria: "9. ÁREA JURÍDICA / PERICIAL", nome: "Defesa trabalhista", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 149, categoria: "9. ÁREA JURÍDICA / PERICIAL", nome: "Contestação de insalubridade", preco1: 900, preco2: 1800, preco3: 4500 },
+            { id: 150, categoria: "9. ÁREA JURÍDICA / PERICIAL", nome: "Contestação de periculosidade", preco1: 900, preco2: 1800, preco3: 4500 },
+            { id: 151, categoria: "9. ÁREA JURÍDICA / PERICIAL", nome: "Parecer técnico", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 152, categoria: "9. ÁREA JURÍDICA / PERICIAL", nome: "Quesitos técnicos", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 153, categoria: "9. ÁREA JURÍDICA / PERICIAL", nome: "Acompanhamento judicial", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 154, categoria: "9. ÁREA JURÍDICA / PERICIAL", nome: "Perícia extrajudicial", preco1: 2500, preco2: 7000, preco3: 20000 },
+            { id: 155, categoria: "10. MEDICINA OCUPACIONAL", nome: "Exames admissionais", preco1: 35, preco2: 60, preco3: 120 },
+            { id: 156, categoria: "10. MEDICINA OCUPACIONAL", nome: "Exames periódicos", preco1: 35, preco2: 60, preco3: 120 },
+            { id: 157, categoria: "10. MEDICINA OCUPACIONAL", nome: "Exames demissionais", preco1: 35, preco2: 60, preco3: 120 },
+            { id: 158, categoria: "10. MEDICINA OCUPACIONAL", nome: "Exames de retorno ao trabalho", preco1: 35, preco2: 60, preco3: 120 },
+            { id: 159, categoria: "10. MEDICINA OCUPACIONAL", nome: "Exames de mudança de função", preco1: 35, preco2: 60, preco3: 120 },
+            { id: 160, categoria: "10. MEDICINA OCUPACIONAL", nome: "Audiometria", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 161, categoria: "10. MEDICINA OCUPACIONAL", nome: "Espirometria", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 162, categoria: "10. MEDICINA OCUPACIONAL", nome: "ECG", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 163, categoria: "10. MEDICINA OCUPACIONAL", nome: "Acuidade visual", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 164, categoria: "10. MEDICINA OCUPACIONAL", nome: "Vacinação ocupacional", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 165, categoria: "10. MEDICINA OCUPACIONAL", nome: "Gestão de ASO", preco1: 600, preco2: 1800, preco3: 5000 },
+            { id: 166, categoria: "11. SERVIÇOS ESTRATÉGICOS PREMIUM", nome: "Cultura de segurança", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 167, categoria: "11. SERVIÇOS ESTRATÉGICOS PREMIUM", nome: "Treinamento de liderança", preco1: 500, preco2: 1200, preco3: 3000 },
+            { id: 168, categoria: "11. SERVIÇOS ESTRATÉGICOS PREMIUM", nome: "Redução de acidentes", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 169, categoria: "11. SERVIÇOS ESTRATÉGICOS PREMIUM", nome: "Redução de afastamentos", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 170, categoria: "11. SERVIÇOS ESTRATÉGICOS PREMIUM", nome: "Indicadores de desempenho", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 171, categoria: "11. SERVIÇOS ESTRATÉGICOS PREMIUM", nome: "BI para SST", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 172, categoria: "11. SERVIÇOS ESTRATÉGICOS PREMIUM", nome: "Dashboards gerenciais", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 173, categoria: "11. SERVIÇOS ESTRATÉGICOS PREMIUM", nome: "Gestão de risco corporativo", preco1: 600, preco2: 1800, preco3: 5000 },
+            { id: 174, categoria: "11. SERVIÇOS ESTRATÉGICOS PREMIUM", nome: "ESG aplicado à segurança", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 175, categoria: "11. SERVIÇOS ESTRATÉGICOS PREMIUM", nome: "Segurança comportamental", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 176, categoria: "11. SERVIÇOS ESTRATÉGICOS PREMIUM", nome: "Gamificação de segurança", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 177, categoria: "11. SERVIÇOS ESTRATÉGICOS PREMIUM", nome: "Consultoria para grandes contratos", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 178, categoria: "11. SERVIÇOS ESTRATÉGICOS PREMIUM", nome: "Preparação para fiscalizações", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 179, categoria: "11. SERVIÇOS ESTRATÉGICOS PREMIUM", nome: "Consultoria para licitações", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 180, categoria: "11. SERVIÇOS ESTRATÉGICOS PREMIUM", nome: "Implantação de ISO 45001", preco1: 4000, preco2: 10000, preco3: 30000 },
+            { id: 181, categoria: "11. SERVIÇOS ESTRATÉGICOS PREMIUM", nome: "Programas de reconhecimento", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 182, categoria: "11. SERVIÇOS ESTRATÉGICOS PREMIUM", nome: "Employer branding em segurança", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 183, categoria: "12. SERVIÇOS ESPECIALIZADOS POR NICHO", nome: "PGR obra", preco1: 450, preco2: 900, preco3: 1800 },
+            { id: 184, categoria: "12. SERVIÇOS ESPECIALIZADOS POR NICHO", nome: "PCMAT", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 185, categoria: "12. SERVIÇOS ESPECIALIZADOS POR NICHO", nome: "Linha de vida", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 186, categoria: "12. SERVIÇOS ESPECIALIZADOS POR NICHO", nome: "Controle de terceirizados", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 187, categoria: "Cozinhas industriais", nome: "GLP", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 188, categoria: "Cozinhas industriais", nome: "Exaustão", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 189, categoria: "Cozinhas industriais", nome: "Compartimentação", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 190, categoria: "Cozinhas industriais", nome: "AVCB/CBMERJ", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 191, categoria: "Supermercados", nome: "Câmara fria", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 192, categoria: "Supermercados", nome: "Ergonomia", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 193, categoria: "Supermercados", nome: "Empilhadeiras", preco1: 1200, preco2: 2500, preco3: 6000 },
+            { id: 194, categoria: "Indústrias", nome: "NR-12", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 195, categoria: "Indústrias", nome: "NR-13", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 196, categoria: "Indústrias", nome: "Agentes químicos", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 197, categoria: "Transportadoras", nome: "Frota", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 198, categoria: "Transportadoras", nome: "Direção defensiva", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 199, categoria: "Transportadoras", nome: "Carga perigosa", preco1: 500, preco2: 1200, preco3: 3500 },
+            { id: 200, categoria: "Clínicas e hospitais", nome: "PGRSS", preco1: 450, preco2: 900, preco3: 1800 },
+            { id: 201, categoria: "Clínicas e hospitais", nome: "NR-32", preco1: 500, preco2: 1200, preco3: 3500 },
+        ];
+
+        let servicosSelecionados = new Set(); // Guarda os IDs dos serviços marcados
+
+        // --------------------------------------------------------
+        // 2. LÓGICA DE SENHA
+        // --------------------------------------------------------
+        const SENHA_CORRETA = "califari2026"; // <-- EDITE SUA SENHA AQUI
+
+        function verificarSenha() {
+            const digitado = document.getElementById('senha').value;
+            if (digitado === SENHA_CORRETA) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('header').style.display = 'block';
+                document.getElementById('app-content').style.display = 'block';
+                renderizarServicos();
+            } else {
+                document.getElementById('login-erro').style.display = 'block';
+            }
+        }
+
+        // Permite apertar "Enter" para logar
+        document.getElementById('senha').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') verificarSenha();
+        });
+
+        // --------------------------------------------------------
+        // 3. LÓGICA DO CARRINHO E INTERFACE
+        // --------------------------------------------------------
+        
+        // Formatar Moeda (R$)
+        function formatarMoeda(valor) {
+            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        // Retorna o preço do serviço baseado na tabela selecionada
+        function getPrecoServico(servico) {
+            const tabelaSelecionada = document.querySelector('input[name="tabela"]:checked').value;
+            if (tabelaSelecionada == "1") return servico.preco1;
+            if (tabelaSelecionada == "2") return servico.preco2;
+            if (tabelaSelecionada == "3") return servico.preco3;
+            return 0;
+        }
+
+        function toggleServico(id) {
+            if (servicosSelecionados.has(id)) {
+                servicosSelecionados.delete(id);
+            } else {
+                servicosSelecionados.add(id);
+            }
+            renderizarServicos(); // Atualiza a lista para mostrar a seleção
+            atualizarCarrinho();  // Atualiza o resumo lateral
+        }
+
+        function renderizarServicos() {
+            const container = document.getElementById('lista-servicos');
+            container.innerHTML = '';
+
+            // Agrupar serviços por categoria
+            const categorias = {};
+            servicosBase.forEach(servico => {
+                if (!categorias[servico.categoria]) {
+                    categorias[servico.categoria] = [];
+                }
+                categorias[servico.categoria].push(servico);
+            });
+
+            // Renderizar cada categoria
+            for (const [categoriaNome, servicos] of Object.entries(categorias)) {
+                const catDiv = document.createElement('div');
+                catDiv.style.marginBottom = '25px';
+                
+                catDiv.innerHTML = `
+                    <h3 style="margin-bottom: 10px; padding-bottom: 5px; border-bottom: 2px solid #eee; color: #004b87; font-size: 1.1rem;">
+                        ${categoriaNome}
+                    </h3>
+                `;
+
+                servicos.forEach(servico => {
+                    const isSelected = servicosSelecionados.has(servico.id);
+                    const precoAtual = getPrecoServico(servico);
+                    
+                    const div = document.createElement('div');
+                    div.className = `service-item ${isSelected ? 'selected' : ''}`;
+                    div.onclick = () => toggleServico(servico.id);
+                    
+                    div.innerHTML = `
+                        <div class="service-info">
+                            <input type="checkbox" ${isSelected ? 'checked' : ''} onclick="event.stopPropagation(); toggleServico(${servico.id})">
+                            <span>${servico.nome}</span>
+                        </div>
+                        <div class="service-price">
+                            ${formatarMoeda(precoAtual)}
+                        </div>
+                    `;
+                    catDiv.appendChild(div);
+                });
+                
+                container.appendChild(catDiv);
+            }
+            
+            atualizarCarrinho(); // Garante que o carrinho muda de valor se a tabela mudar
+        }
+
+        function atualizarCarrinho() {
+            const container = document.getElementById('carrinho-itens');
+            const totalEl = document.getElementById('carrinho-total');
+            
+            if (servicosSelecionados.size === 0) {
+                container.innerHTML = '<p style="color: #666; font-size: 0.9rem;">Nenhum serviço selecionado ainda.</p>';
+                totalEl.textContent = formatarMoeda(0);
+                return;
+            }
+
+            container.innerHTML = '';
+            let total = 0;
+
+            servicosBase.forEach(servico => {
+                if (servicosSelecionados.has(servico.id)) {
+                    const preco = getPrecoServico(servico);
+                    total += preco;
+                    
+                    const item = document.createElement('div');
+                    item.className = 'summary-item';
+                    item.innerHTML = `
+                        <span>${servico.nome}</span>
+                        <strong>${formatarMoeda(preco)}</strong>
+                    `;
+                    container.appendChild(item);
+                }
+            });
+
+            totalEl.textContent = formatarMoeda(total);
+        }
+
+        // --------------------------------------------------------
+        // 4. LÓGICA DO RESUMO FINAL E EXPORTAÇÃO
+        // --------------------------------------------------------
+        
+        function gerarResumoFinal() {
+            if (servicosSelecionados.size === 0) {
+                alert("Selecione pelo menos um serviço antes de finalizar o orçamento.");
+                return;
+            }
+
+            // Pega dados do cliente
+            const nome = document.getElementById('cliente-nome').value || 'Não informado';
+            const empresa = document.getElementById('cliente-empresa').value || 'Não informada';
+            const email = document.getElementById('cliente-email').value || '-';
+            const whatsapp = document.getElementById('cliente-whatsapp').value || '-';
+            const dataAtual = new Date().toLocaleDateString('pt-BR');
+
+            // Preenche painel do cliente
+            document.getElementById('resumo-dados-cliente').innerHTML = `
+                <p><strong>Cliente/Contato:</strong> ${nome}</p>
+                <p><strong>Empresa:</strong> ${empresa}</p>
+                <p><strong>E-mail:</strong> ${email} | <strong>WhatsApp:</strong> ${whatsapp}</p>
+                <p><strong>Data:</strong> ${dataAtual}</p>
+            `;
+
+            // Preenche tabela
+            const tbody = document.getElementById('resumo-tabela-corpo');
+            tbody.innerHTML = '';
+            let total = 0;
+
+            servicosBase.forEach(servico => {
+                if (servicosSelecionados.has(servico.id)) {
+                    const preco = getPrecoServico(servico);
+                    total += preco;
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${servico.nome}</td>
+                            <td style="text-align: right; font-weight: 600;">${formatarMoeda(preco)}</td>
+                        </tr>
+                    `;
+                }
+            });
+
+            document.getElementById('resumo-tabela-total').textContent = formatarMoeda(total);
+
+            // Esconde Tela 1 e Mostra Tela 2
+            document.getElementById('tela-selecao').style.display = 'none';
+            document.getElementById('resumo-final').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function voltarEdicao() {
+            document.getElementById('tela-selecao').style.display = 'grid'; // Volta o grid
+            document.getElementById('resumo-final').style.display = 'none';
+            
+            // Corrige display flex pra mobile se precisar
+            if(window.innerWidth <= 900) {
+                document.getElementById('tela-selecao').style.display = 'flex';
+                document.getElementById('tela-selecao').style.flexDirection = 'column';
+            }
+        }
+
+        function enviarWhatsApp() {
+            const nome = document.getElementById('cliente-nome').value || 'Cliente';
+            const whatsappNum = document.getElementById('cliente-whatsapp').value.replace(/\D/g, '');
+            
+            let texto = `*Olá, ${nome}!* Tudo bem?\nConforme conversamos, segue o resumo do investimento para os serviços de Engenharia e Segurança do Trabalho da sua empresa:\n\n`;
+            
+            let total = 0;
+            servicosBase.forEach(servico => {
+                if (servicosSelecionados.has(servico.id)) {
+                    const preco = getPrecoServico(servico);
+                    total += preco;
+                    texto += `✅ *${servico.nome}* - ${formatarMoeda(preco)}\n`;
+                }
+            });
+
+            texto += `\n*Investimento Total:* ${formatarMoeda(total)}\n\n`;
+            texto += `Fico à disposição para tirar qualquer dúvida e darmos andamento.\n\nAtenciosamente,\n*Eng. Gilmar Faria*\nCalifari Engenharia Estratégica`;
+
+            const url = `https://wa.me/55${whatsappNum}?text=${encodeURIComponent(texto)}`;
+            window.open(url, '_blank');
+        }
+
+        function enviarEmail() {
+            const nome = document.getElementById('cliente-nome').value || 'Cliente';
+            const emailDestino = document.getElementById('cliente-email').value || '';
+            
+            const assunto = `Proposta Comercial - Engenharia e Segurança do Trabalho - Califari`;
+            
+            let texto = `Olá, ${nome}!\n\nConforme conversamos, segue o resumo do investimento para os serviços de Engenharia e Segurança do Trabalho da sua empresa:\n\n`;
+            
+            let total = 0;
+            servicosBase.forEach(servico => {
+                if (servicosSelecionados.has(servico.id)) {
+                    const preco = getPrecoServico(servico);
+                    total += preco;
+                    texto += `- ${servico.nome} : ${formatarMoeda(preco)}\n`;
+                }
+            });
+
+            texto += `\nInvestimento Total: ${formatarMoeda(total)}\n\n`;
+            texto += `Fico à disposição para tirar qualquer dúvida e darmos andamento.\n\nAtenciosamente,\nEng. Gilmar Faria\nCalifari Engenharia Estratégica`;
+
+            const mailtoUrl = `mailto:${emailDestino}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(texto)}`;
+            window.location.href = mailtoUrl;
+        }
+
+    </script>
+</body>
+</html>
